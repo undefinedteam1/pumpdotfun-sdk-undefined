@@ -60,11 +60,11 @@ export async function sendTx(
 
   try {
     const sig = await connection.sendTransaction(versionedTx, {
-      skipPreflight: false,
+      skipPreflight: true,
     });
     console.log("sig:", `https://solscan.io/tx/${sig}`);
 
-    let txResult = await getTxDetails(connection, sig, commitment, finality);
+    let txResult = await getTxDetails(connection, sig, commitment);
     if (!txResult) {
       return {
         success: false,
@@ -126,12 +126,12 @@ export const getTxDetails = async (connection, signature, commitment = exports.D
             }
 
             if (status.value && status.value.err) {
-                throw new TransactionError(`Transaction failed: ${status.value.err}`, signature);
+                throw `Transaction failed: ${status.value.err} ${signature}`
             }
 
             const blockHeight = await connection.getBlockHeight();
             if (blockHeight > lastValidBlockHeight) {
-                throw new TransactionError("Transaction expired", signature);
+                throw `Transaction expired: ${signature}`
             }
 
             await new Promise((resolve) =>
