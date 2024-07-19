@@ -1,6 +1,6 @@
 {
-  "name": "pumpdotfun-sdk",
-  "version": "1.3.2",
+  "name": "pumpdotfun-sdk-undefined",
+  "version": "1.3.3",
   "description": "A simple SDK for interacting with pumpdotfun",
   
   "module": "./dist/esm/index.js",
@@ -19,14 +19,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/rckprtr/pumpdotfun-sdk.git"
+    "url": "https://github.com/undefinedteam1/pumpdotfun-sdk-undefined.git"
   },
   "keywords": [
     "pumpdotfun",
     "sdk",
     "solana"
   ],
-  "author": "",
+  "author": "undefined",
   "license": "ISC",
   "devDependencies": {
     "@coral-xyz/borsh": "^0.30.1",
