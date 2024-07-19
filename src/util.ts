@@ -108,24 +108,39 @@ export const buildVersionedTx = async (
   return new VersionedTransaction(messageV0);
 };
 
-export const getTxDetails = async (
-  connection: Connection,
-  sig: string,
-  commitment: Commitment = DEFAULT_COMMITMENT,
-  finality: Finality = DEFAULT_FINALITY
-): Promise<VersionedTransactionResponse | null> => {
-  const latestBlockHash = await connection.getLatestBlockhash();
-  await connection.confirmTransaction(
-    {
-      blockhash: latestBlockHash.blockhash,
-      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
-      signature: sig,
-    },
-    commitment
-  );
+export const getTxDetails = async (connection, signature, commitment = exports.DEFAULT_COMMITMENT) => {
+    const blockhash = await connection.getLatestBlockhash();
+    const blockhashWithExpiryBlockHeight = {
+        blockhash: blockhash.blockhash,
+        lastValidBlockHeight: blockhash.lastValidBlockHeight,
+    };
+    const lastValidBlockHeight = blockhashWithExpiryBlockHeight.lastValidBlockHeight - 30;
 
-  return connection.getTransaction(sig, {
-    maxSupportedTransactionVersion: 0,
-    commitment: finality,
-  });
+    // Loop for confirmation check
+    let retryCount = 0;
+    while (retryCount <= 30) {
+        try {
+            const status = await connection.getSignatureStatus(signature);
+            if (status.value && status.value.confirmationStatus && status.value.confirmationStatus == commitment) {
+                return signature
+            }
+
+            if (status.value && status.value.err) {
+                throw new TransactionError(`Transaction failed: ${status.value.err}`, signature);
+            }
+
+            const blockHeight = await connection.getBlockHeight();
+            if (blockHeight > lastValidBlockHeight) {
+                throw new TransactionError("Transaction expired", signature);
+            }
+
+            await new Promise((resolve) =>
+                setTimeout(resolve, 500)
+            );
+
+            retryCount++;
+        } catch (error) {
+            console.log(error)
+        }
+    }
 };
